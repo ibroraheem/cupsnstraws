@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react'; // Added useMemo
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, CreditCard, Check } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
-import { useFlutterwave } from '../hooks/useFlutterwave';
+import { useFlutterwave, CustomFlutterwaveConfig } from '../hooks/useFlutterwave'; // Import CustomFlutterwaveConfig
 import { formatCurrency } from '../utils/formatCurrency';
 
 interface DeliveryInfo {
@@ -31,7 +31,7 @@ const PICKUP_LOCATIONS = {
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { items, getTotalPrice, clearCart } = useCart();
-  const { initializePayment } = useFlutterwave();
+  // const { initializePayment } = useFlutterwave(); // Old hook usage
   const [isLoading, setIsLoading] = useState(false);
   const [isOrderComplete, setIsOrderComplete] = useState(false);
   
@@ -47,6 +47,45 @@ const Checkout: React.FC = () => {
   });
   
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Configuration for the useFlutterwave hook
+  const flutterwavePaymentConfig: CustomFlutterwaveConfig = useMemo(() => ({
+    amount: getTotalPrice(), // Or getTotalForPayment() if they can differ
+    email: deliveryInfo.email,
+    firstName: deliveryInfo.firstName,
+    lastName: deliveryInfo.lastName,
+    phone: deliveryInfo.phone,
+    metadata: {
+      firstName: deliveryInfo.firstName,
+      lastName: deliveryInfo.lastName,
+      phone: deliveryInfo.phone,
+      deliveryMethod: deliveryInfo.deliveryMethod,
+      address: deliveryInfo.deliveryMethod === 'delivery' ? deliveryInfo.address : deliveryInfo.pickupLocation,
+      items: items.map(item => ({
+        name: item.product.name,
+        size: item.selectedSize.size,
+        quantity: item.quantity,
+        price: item.selectedSize.price,
+      })),
+    },
+    onSuccess: () => {
+      setIsOrderComplete(true);
+      clearCart();
+      setIsLoading(false); // Ensure loading is stopped on success
+    },
+    onCancel: () => {
+      setIsLoading(false);
+      console.log('[Checkout.tsx] Payment cancelled by user or failed.');
+    },
+  }), [
+    getTotalPrice, // Make sure this is stable or correctly memoized if it's a function from a hook
+    deliveryInfo, 
+    items, 
+    clearCart
+  ]);
+
+  const { initializePayment } = useFlutterwave(flutterwavePaymentConfig);
+
 
   if (items.length === 0 && !isOrderComplete) {
     navigate('/cart');
@@ -108,46 +147,35 @@ const Checkout: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[Checkout.tsx] handleSubmit: Fired');
     
+    console.log('[Checkout.tsx] handleSubmit: Validating form...');
     if (!validateForm()) {
+      console.log('[Checkout.tsx] handleSubmit: Validation failed');
       return;
     }
+    console.log('[Checkout.tsx] handleSubmit: Validation successful');
     
     setIsLoading(true);
 
     try {
-      const amount = getTotalForPayment();
-      
-      await initializePayment({
-        email: deliveryInfo.email,
-        amount,
-        metadata: {
-          firstName: deliveryInfo.firstName,
-          lastName: deliveryInfo.lastName,
-          phone: deliveryInfo.phone,
-          deliveryMethod: deliveryInfo.deliveryMethod,
-          address: deliveryInfo.deliveryMethod === 'delivery' ? deliveryInfo.address : deliveryInfo.pickupLocation,
-          items: items.map(item => ({
-            name: item.product.name,
-            size: item.selectedSize.size,
-            quantity: item.quantity,
-            price: item.selectedSize.price
-          }))
-        },
-        onSuccess: () => {
-          setIsOrderComplete(true);
-          clearCart();
-        },
-        onCancel: () => {
-          setIsLoading(false);
-        }
-      });
+      // const amount = getTotalForPayment(); // Amount is now part of flutterwavePaymentConfig
+      console.log('[Checkout.tsx] handleSubmit: Calling initializePayment from hook.');
+      // initializePayment from the hook is called directly. It doesn't take arguments anymore.
+      // It also doesn't need to be awaited as it just triggers the modal.
+      initializePayment(); 
+      // The try-catch here might not catch errors from the modal itself,
+      // those are handled by onCancel or errors within the Flutterwave SDK.
     } catch (error) {
-      console.error('Payment failed:', error);
+      // This catch is unlikely to be hit for payment process errors,
+      // but good for other unexpected errors in this block.
+      console.error('Error in handleSubmit before triggering payment:', error);
       setIsLoading(false);
     }
   };
 
+  // getTotalForPayment might still be useful for displaying the amount on the button,
+  // but the actual amount for payment is passed via flutterwavePaymentConfig.
   const getTotalForPayment = (): number => {
     return getTotalPrice();
   };
@@ -328,7 +356,7 @@ const Checkout: React.FC = () => {
                     </div>
                     {deliveryInfo.deliveryMethod === 'delivery' && (
                       <p className="text-sm text-yellow-700 mt-3 bg-yellow-50 p-2 rounded-md">
-                        Please note: Delivery fee will be paid separately upon delivery.
+                        Please note: Delivery fee will be paid separately upon delivery and is determined by distance and rider availability.
                       </p>
                     )}
                   </div>
@@ -433,7 +461,7 @@ const Checkout: React.FC = () => {
                 
                 <div className="flex justify-between text-gray-600">
                   <span>Delivery Fee</span>
-                  <span className="font-medium text-sm">(To be paid separately)</span>
+                  <span className="font-medium text-sm">(To be paid separately, determined by distance & rider)</span>
                 </div>
                 
                 <div className="flex justify-between text-lg font-bold text-primary border-t border-gray-200 pt-3">
