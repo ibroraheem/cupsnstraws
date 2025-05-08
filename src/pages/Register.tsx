@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const { signUp } = useAuth();
-  const [name, setName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -17,13 +18,14 @@ const Register: React.FC = () => {
     setLoading(true);
 
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      toast.error('Passwords do not match');
       setLoading(false);
       return;
     }
 
     try {
-      await signUp(email, password, name, phone);
+      await signUp(email, password, fullName, phone);
+      toast.success('Registration successful! Please check your email to verify your account.');
       navigate('/login');
     } catch (error) {
       console.error('Error signing up:', error);
@@ -50,19 +52,19 @@ const Register: React.FC = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full name
+              <label htmlFor="full-name" className="block text-sm font-medium text-gray-700">
+                Full Name
               </label>
               <div className="mt-1">
                 <input
-                  id="name"
-                  name="name"
+                  id="full-name"
+                  name="full-name"
                   type="text"
                   autoComplete="name"
                   required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                 />
               </div>
             </div>

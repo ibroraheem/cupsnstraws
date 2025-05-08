@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name: string, phone: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, phone: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -48,30 +48,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, name: string, phone: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phone: string) => {
     try {
       const { error: signUpError, data } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: fullName,
+            phone_number: phone
+          }
+        }
       });
 
       if (signUpError) throw signUpError;
-
-      if (data.user) {
-        // Create customer profile
-        const { error: profileError } = await supabase
-          .from('customers')
-          .insert([
-            {
-              id: data.user.id,
-              email,
-              name,
-              phone,
-            },
-          ]);
-
-        if (profileError) throw profileError;
-      }
 
       toast.success('Successfully signed up! Please check your email for verification.');
     } catch (error: any) {
