@@ -1,0 +1,19 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[dev]
+  command = "npm run dev" # Optional: command to run the dev server
+  targetPort = 5173       # Optional: port of your dev server (Vite's default)
+  framework = "#vite"     # Optional: helps Netlify Dev work better
+
+# Optional: You can also add redirects and headers here if needed in the future
+# [[redirects]]
+#   from = "/old-path"
+#   to = "/new-path"
+#   status = 301
+
+# [[headers]]
+#   for = "/*"
+#   [headers.values]
+#     X-Frame-Options = "DENY" 
