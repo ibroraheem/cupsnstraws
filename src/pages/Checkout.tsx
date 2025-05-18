@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'; // Added useMemo
+import React, { useState, useMemo, useEffect } from 'react'; // Added useEffect
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, CreditCard, Check } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
@@ -47,6 +47,22 @@ const Checkout: React.FC = () => {
   });
   
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Pre-fill contact information if user is logged in
+  useEffect(() => {
+    // Example: Check if user is logged in and has saved contact info
+    const loggedInUser = localStorage.getItem('loggedInUser');
+    if (loggedInUser) {
+      const userData = JSON.parse(loggedInUser);
+      setDeliveryInfo(prev => ({
+        ...prev,
+        firstName: userData.firstName || prev.firstName,
+        lastName: userData.lastName || prev.lastName,
+        email: userData.email || prev.email,
+        phone: userData.phone || prev.phone,
+      }));
+    }
+  }, []);
 
   // Configuration for the useFlutterwave hook
   const flutterwavePaymentConfig: CustomFlutterwaveConfig = useMemo(() => ({

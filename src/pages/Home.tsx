@@ -272,17 +272,38 @@ const Home: React.FC = () => {
         <h2 className="text-2xl font-bold text-primary mb-8 text-center">What Our Customers Say</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white rounded-lg shadow p-6 animate-fade-in">
-            <p className="text-gray-700 italic mb-2">“Absolutely delicious and so healthy! My kids love the tigernut juice.”</p>
+            <p className="text-gray-700 italic mb-2">"Absolutely delicious and so healthy! My kids love the tigernut juice."</p>
             <div className="flex items-center">
               <span className="inline-block h-8 w-8 rounded-full bg-primary mr-2"></span>
               <span className="font-bold text-primary">Aisha, Abuja</span>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow p-6 animate-fade-in">
-            <p className="text-gray-700 italic mb-2">“Fast delivery and the drinks taste so fresh. Highly recommend!”</p>
+            <p className="text-gray-700 italic mb-2">"Fast delivery and the drinks taste so fresh. Highly recommend!"</p>
             <div className="flex items-center">
               <span className="inline-block h-8 w-8 rounded-full bg-accent mr-2"></span>
               <span className="font-bold text-accent">Chinedu, Gwarinpa</span>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6 animate-fade-in">
+            <p className="text-gray-700 italic mb-2">"The ginger drink is a lifesaver during cold weather. Love it!"</p>
+            <div className="flex items-center">
+              <span className="inline-block h-8 w-8 rounded-full bg-yellow mr-2"></span>
+              <span className="font-bold text-yellow">Olu, Ilorin</span>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6 animate-fade-in">
+            <p className="text-gray-700 italic mb-2">"Best natural drinks in town. Always fresh and tasty!"</p>
+            <div className="flex items-center">
+              <span className="inline-block h-8 w-8 rounded-full bg-primary mr-2"></span>
+              <span className="font-bold text-primary">Sarah, Abuja</span>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6 animate-fade-in">
+            <p className="text-gray-700 italic mb-2">"Great service and amazing flavors. Will order again!"</p>
+            <div className="flex items-center">
+              <span className="inline-block h-8 w-8 rounded-full bg-accent mr-2"></span>
+              <span className="font-bold text-accent">Michael, Ilorin</span>
             </div>
           </div>
         </div>

@@ -51,7 +51,12 @@ export const useFlutterwave = (dynamicConfig: CustomFlutterwaveConfig) => {
       phone_number: dynamicConfig.phone,
       name: `${dynamicConfig.firstName} ${dynamicConfig.lastName}`,
     },
-    meta: dynamicConfig.metadata,
+    // TEMPORARILY SIMPLIFYING METADATA FOR DEBUGGING
+    // meta: dynamicConfig.metadata, 
+    meta: { 
+      consumer_id: dynamicConfig.email, // Example of a simpler meta field
+      description: "Order payment" 
+    },
     customizations: {
       title: "Cups & Straws",
       description: "Payment for your order",
@@ -72,6 +77,8 @@ export const useFlutterwave = (dynamicConfig: CustomFlutterwaveConfig) => {
     },
   };
 
+  console.log('[useFlutterwave.ts] SDK Config being used:', JSON.stringify(sdkConfig, null, 2)); // Log the config
+
   // This is the function returned by the Flutterwave SDK hook, which triggers the payment modal.
   // It's crucial that sdkConfig is stable or memoized if it's a dependency of useFlutterwaveSDK
   // or the function it returns.
@@ -84,25 +91,23 @@ export const useFlutterwave = (dynamicConfig: CustomFlutterwaveConfig) => {
       return;
     }
     console.log('[useFlutterwave.ts] Attempting to trigger Flutterwave modal.');
-    // The function returned by useFlutterwaveSDK is called to initiate the payment.
-    // The TS error "Expected 1 arguments, but got 0" suggests handleFlutterwavePayment needs an argument.
-    // Let's try passing the sdkConfig to it, as this is a common pattern if the hook itself doesn't fully consume it.
+    // Reverting to call with sdkConfig as per TS error "Expected 1 arguments, but got 0."
     handleFlutterwavePayment(sdkConfig); 
   }, [
     publicKey, 
     handleFlutterwavePayment,
-    sdkConfig // sdkConfig is now an explicit dependency for the call
-    // sdkConfig is implicitly a dependency of handleFlutterwavePayment because useFlutterwaveSDK uses it.
-    // Adding all individual properties of dynamicConfig to ensure useCallback updates if they change,
-    // which in turn would recreate sdkConfig and thus handleFlutterwavePayment.
-    // This is a bit verbose but ensures correctness if sdkConfig isn't memoized.
-    // A better approach might be to memoize sdkConfig with useMemo.
-    // For now, let's list them to be safe, as they are used to build sdkConfig.
-    // dynamicConfig.amount, dynamicConfig.email, dynamicConfig.firstName, dynamicConfig.lastName,
-    // dynamicConfig.phone, dynamicConfig.metadata, dynamicConfig.onSuccess, dynamicConfig.onCancel
+    sdkConfig // sdkConfig is now an explicit dependency
+    // If sdkConfig itself needs to be a dependency for useCallback (e.g. if it were passed directly),
+    // it should be memoized with useMemo to prevent re-creating initializePayment on every render.
+    // However, since handleFlutterwavePayment is the direct dependency derived from sdkConfig,
+    // this setup should be fine if useFlutterwaveSDK handles its dependencies correctly.
   ]);
 
-  // To make dependencies cleaner for initializePayment, we can memoize sdkConfig
+  // To make dependencies cleaner for initializePayment, we can memoize sdkConfig with useMemo
+  // if sdkConfig were directly used in the useCallback, e.g.
+  // const memoizedSdkConfig = useMemo(() => sdkConfig, [dynamicConfig...]);
+  // Then initializePayment would depend on memoizedSdkConfig.
+  // For now, the dependency on handleFlutterwavePayment (which depends on sdkConfig) is the key.
   // However, the primary dependency for initializePayment should be handleFlutterwavePayment and publicKey.
   // The dependencies of useFlutterwaveSDK (which creates handleFlutterwavePayment) are implicitly handled.
 
